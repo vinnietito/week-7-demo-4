@@ -22,8 +22,7 @@ app.get('/login', (request, response) => {
     response.sendFile(path.join(__dirname, 'login.html'));
 });
 
-const PORT = process.env.PORT;
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log('Server is running at http://127.0.0.1:${PORT}')
+    console.log(`Server is running at http://127.0.0.1:${PORT}`);
 });

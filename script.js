@@ -1,43 +1,68 @@
-document.getElementById('frm-register').addEventListener('submit', async function(e) {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+    const registerForm = document.getElementById('frm-register');
+    const loginForm = document.getElementById('frm-login');
 
-    const name = document.getElementById('name').value; 
-    const email = document.getElementById('email').value; 
-    const password = document.getElementById('password').value; 
+    // Register form handler
+    if (registerForm) {
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-    //send the request to the server
-    const response = await fetch('/auth/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type' : 'application/json'
-        },
-        body: JSON.stringify({ name, email, password })
-    });
+            const name = document.getElementById('name').value; 
+            const email = document.getElementById('email').value; 
+            const password = document.getElementById('password').value; 
 
-    const data = await response.json();
+            // Send the request to the server
+            const response = await fetch('/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, password })
+            });
 
-    alert(data.message);
+            const data = await response.json();
+            alert(data.message);
+        });
+    }
 
-});
+    // Login form handler
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-document.getElementById('frm-login').addEventListener('submit', async function(e) {
-    e.preventDefault();
+            // Retrieve the elements
+            const loginEmailElement = document.getElementById('login-email');
+            const loginPasswordElement = document.getElementById('login-password');
 
-    const email = document.getElementById('email').value; 
-    const password = document.getElementById('password').value; 
+            console.log('Login Email Element:', loginEmailElement);
+            console.log('Login Password Element:', loginPasswordElement);
 
-    //send the request to the server
-    const response = await fetch('/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type' : 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-    });
+            if (loginEmailElement && loginPasswordElement) {
+                const loginEmail = loginEmailElement.value; 
+                const loginPassword = loginPasswordElement.value; 
 
-    const data = await response.json();
+                console.log('Login Email:', loginEmail); 
+                console.log('Login Password:', loginPassword); 
 
-    alert(data.message + 'Welcome ' + data.name + ' of email address: ' + data.email);
+                // Send the request to the server
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: loginEmail, password: loginPassword })
+                });
 
-       
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`Welcome ${data.name} of email address: ${data.email}`);
+                } else {
+                    alert(data.message); 
+                }
+            } else {
+                console.error('One or both login elements are missing from the DOM');
+            }
+        });
+    }
 });
