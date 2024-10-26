@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            margin-top: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book an Appointment</h1>
+    <form id="appointmentForm">
+        <div class="form-group">
+            <label for="doctorId">Select Doctor:</label>
+            <select id="doctorId" required>
+                <option value="">--Select Doctor--</option>
+                <!-- Doctor options will be populated here -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="date">Appointment Date:</label>
+            <input type="date" id="date" required>
+        </div>
+        <div class="form-group">
+            <label for="time">Appointment Time:</label>
+            <input type="time" id="time" required>
+        </div>
+        <button type="submit">Book Appointment</button>
+    </form>
+
+    <button id="back">Back to Dashboard</button>
+
+    <script>
+        // Check if the user is logged in
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html'; // Redirect to login if not logged in
+        }
+
+        // Load doctors (you'll need to implement this endpoint in your backend)
+        fetch('http://localhost:3000/doctors')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const doctorSelect = document.getElementById('doctorId');
+                data.doctors.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.id;
+                    option.textContent = `${doctor.first_name} ${doctor.last_name}`;
+                    doctorSelect.appendChild(option);
+                });
+            } else {
+                alert(data.message);
+            }
+        });
+
+        // Handle appointment booking
+        document.getElementById('appointmentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const doctorId = document.getElementById('doctorId').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+
+            fetch('http://localhost:3000/appointments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ doctorId, date, time })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Appointment booked successfully!');
+                    window.location.href = 'dashboard.html'; // Redirect to dashboard after booking
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
+
+        // Back to dashboard button
+        document.getElementById('back').addEventListener('click', () => {
+            window.location.href = 'dashboard.html'; // Redirect to dashboard
+        });
+    </script>
+</body>
+</html>
