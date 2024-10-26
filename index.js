@@ -142,6 +142,28 @@ app.post('/appointments', async (req, res) => {
     }
 });
 
+// Route to fetch medical history for a specific patient
+app.get('/patients/:id/medical-history', async (req, res) => {
+    const patientId = req.params.id;
+
+    try {
+        const [medicalHistory] = await connection.query(
+            'SELECT date, doctor_name, specialty, treatment FROM medical_history WHERE patient_id = ?',
+            [patientId]
+        );
+        
+        if (medicalHistory.length === 0) {
+            return res.status(404).json({ success: false, message: 'No medical history found for this patient.' });
+        }
+
+        res.json({ success: true, medicalHistory });
+    } catch (error) {
+        console.error('Error fetching medical history:', error);
+        res.status(500).json({ success: false, message: 'Error loading medical history' });
+    }
+});
+
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
