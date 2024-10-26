@@ -2,11 +2,17 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const connection = require('./config/db'); // Import the database connection
+const path = require('path'); // Import path for serving static files
+
 const app = express();
 const port = 3000;
 
 // Middleware to parse JSON
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // To parse URL-encoded data
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Test the database connection using promises
 connection.query('SELECT 1')
@@ -40,7 +46,7 @@ app.post('/patients/register', async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const [result] = await connection.query(query, [first_name, last_name, email, hashedPassword, phone, date_of_birth, gender, address]);
-        
+
         console.log('Patient registered successfully with ID:', result.insertId); // Log the insert ID
         res.json({ success: true, message: 'Patient registered successfully' });
     } catch (error) {
