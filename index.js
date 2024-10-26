@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const connection = require('./config/db'); // Import the database connection
 const path = require('path'); // Import path for serving static files
 const jwt = require('jsonwebtoken'); // For handling JWT authentication
+const patientsRoutes = require('./routes/patient');
 const app = express();
 const port = 3000;
 
@@ -12,6 +13,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/patient', patientsRoutes);
 
 // Test the database connection
 async function testDatabaseConnection() {
