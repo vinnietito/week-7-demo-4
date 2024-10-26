@@ -1,23 +1,59 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Patient Login</title>
     <style>
-        label, input{
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input {
             display: block;
+            margin: 10px 0;
+            padding: 10px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 15px;
         }
     </style>
 </head>
 <body>
-    <h2>User Login</h2>
-    <form id="frm-login">
-        <label for="email">Email</label>
-        <input type="email" id="login-email" required>
-        <label for="password">Password:</label>
-        <input type="password" id="login-password" required>
+    <h1>Patient Login</h1>
+    <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
         <button type="submit">Login</button>
     </form>
-    <script src="script.js"></script>
+    <div id="message"></div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('http://localhost:3000/patients/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+            document.getElementById('message').textContent = data.message;
+
+            if (data.success) {
+                // Store the JWT token in local storage and redirect to the dashboard
+                localStorage.setItem('token', data.token);
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html'; // Redirect to the dashboard
+                }, 2000);
+            }
+        });
+    </script>
 </body>
 </html>

@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('frm-register');
     const loginForm = document.getElementById('frm-login');
 
-    // Register form handler
+    // Register form handler[Signup Form]
     if (registerForm) {
         registerForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Login form handler
+    // Login form handler[Login FORM]
     if (loginForm) {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.success) {
                     alert(`Welcome ${data.name} of email address: ${data.email}`);
+                    // Optionally redirect or perform other actions on successful login
                 } else {
                     alert(data.message); 
                 }

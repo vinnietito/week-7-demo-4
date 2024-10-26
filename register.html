@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Patient Registration</h1>
+    <form id="registerForm">
+        <input type="text" id="first_name" placeholder="First Name" required>
+        <input type="text" id="last_name" placeholder="Last Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <input type="text" id="phone" placeholder="Phone" required>
+        <input type="date" id="date_of_birth" placeholder="Date of Birth" required>
+        <select id="gender" required>
+            <option value="" disabled selected>Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" id="address" placeholder="Address" required>
+        <button type="submit">Register</button>
+    </form>
+    <div id="message"></div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const first_name = document.getElementById('first_name').value;
+            const last_name = document.getElementById('last_name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const phone = document.getElementById('phone').value;
+            const date_of_birth = document.getElementById('date_of_birth').value;
+            const gender = document.getElementById('gender').value;
+            const address = document.getElementById('address').value;
+
+            const response = await fetch('http://localhost:3000/patients/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    first_name,
+                    last_name,
+                    email,
+                    password,
+                    phone,
+                    date_of_birth,
+                    gender,
+                    address
+                })
+            });
+
+            const data = await response.json();
+            document.getElementById('message').textContent = data.message;
+
+            if (data.success) {
+                // Redirect to login page after successful registration
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
