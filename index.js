@@ -1,9 +1,10 @@
+// app.js
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); // For handling JWT authentication
 const connection = require('./config/db'); // Import the database connection
 const path = require('path'); // Import path for serving static files
-const jwt = require('jsonwebtoken'); // For handling JWT authentication
-const patientsRoutes = require('./routes/patient');
+const patientsRoutes = require('./routes/patient'); // Importing patient routes
 const app = express();
 const port = 3000;
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Use patient routes
 app.use('/patient', patientsRoutes);
 
 // Test the database connection
@@ -78,7 +80,7 @@ app.post('/patients/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
 
-        // Generate JWT token (if needed for future use)
+        // Generate JWT token
         const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
 
         res.json({ success: true, message: 'Login successful', user, token });
@@ -106,11 +108,19 @@ app.get('/patients/:id/medical-history', async (req, res) => {
     const patientId = req.params.id;
 
     try {
-        const [medicalHistory] = await connection.query('SELECT * FROM medical_history WHERE patient_id = ?', [patientId]);
+        const [medicalHistory] = await connection.query(
+            'SELECT date, doctor_name, specialty, treatment FROM medical_history WHERE patient_id = ?',
+            [patientId]
+        );
+
+        if (medicalHistory.length === 0) {
+            return res.status(404).json({ success: false, message: 'No medical history found for this patient.' });
+        }
+
         res.json({ success: true, medicalHistory });
     } catch (error) {
         console.error('Error fetching medical history:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(500).json({ success: false, message: 'Error loading medical history' });
     }
 });
 
@@ -126,40 +136,30 @@ app.get('/doctors', async (req, res) => {
 });
 
 // Route to book a new appointment
+// Route to book a new appointment
 app.post('/appointments', async (req, res) => {
+    console.log('Booking appointment request received:', req.body); // Log the request body
     const { doctorId, date, time, patientId } = req.body;
 
     try {
+        // Validate input
+        if (!doctorId || !patientId || !date || !time) {
+            return res.status(400).json({ success: false, message: 'All fields are required' });
+        }
+
         const query = `
             INSERT INTO appointments (doctor_id, patient_id, appointment_date, appointment_time)
             VALUES (?, ?, ?, ?)`;
 
+        // Log the SQL query for debugging
+        console.log('Executing query:', query, [doctorId, patientId, date, time]);
+
         await connection.query(query, [doctorId, patientId, date, time]);
         res.status(201).json({ success: true, message: 'Appointment booked successfully' });
     } catch (error) {
-        console.error('Error booking appointment:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
-    }
-});
-
-// Route to fetch medical history for a specific patient
-app.get('/patients/:id/medical-history', async (req, res) => {
-    const patientId = req.params.id;
-
-    try {
-        const [medicalHistory] = await connection.query(
-            'SELECT date, doctor_name, specialty, treatment FROM medical_history WHERE patient_id = ?',
-            [patientId]
-        );
-        
-        if (medicalHistory.length === 0) {
-            return res.status(404).json({ success: false, message: 'No medical history found for this patient.' });
-        }
-
-        res.json({ success: true, medicalHistory });
-    } catch (error) {
-        console.error('Error fetching medical history:', error);
-        res.status(500).json({ success: false, message: 'Error loading medical history' });
+        console.error('Error booking appointment:', error); // Log the error
+        // Provide more specific error information
+        res.status(500).json({ success: false, message: 'Failed to book appointment: ' + error.sqlMessage || error.message });
     }
 });
 

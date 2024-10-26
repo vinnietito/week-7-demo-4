@@ -16,17 +16,18 @@
             color: #4CAF50;
             text-align: center;
         }
-        #userInfo, #medicalHistory {
+        #userInfo, #medicalHistory, #appointmentSection {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
-        select, button {
+        select, input[type="date"], input[type="time"], button {
             padding: 10px 15px;
             font-size: 16px;
             margin-top: 10px;
+            width: 100%;
         }
         button {
             background-color: #4CAF50;
@@ -38,11 +39,6 @@
         }
         button:hover {
             background-color: #45a049;
-        }
-        @media (max-width: 600px) {
-            select, button {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -58,12 +54,25 @@
     <select id="doctorSelect">
         <option value="">--Select a Doctor--</option>
     </select>
+
+    <div id="appointmentSection">
+        <h2>Book Appointment</h2>
+        <label for="appointmentDate">Appointment Date:</label>
+        <input type="date" id="appointmentDate" required>
+        
+        <label for="appointmentTime">Appointment Time:</label>
+        <input type="time" id="appointmentTime" required>
+        
+        <button id="bookAppointment">Book Appointment</button>
+    </div>
+
     <button id="logout">Logout</button>
 
     <script>
         const token = localStorage.getItem('token');
+        const patientId = localStorage.getItem('patientId'); // Get patient ID from local storage
 
-        if (!token) {
+        if (!token || !patientId) {
             window.location.href = 'login.html';
         }
 
@@ -110,9 +119,44 @@
             })
             .catch(error => console.error('Error fetching doctors:', error));
 
+        // Book appointment functionality
+        document.getElementById('bookAppointment').addEventListener('click', () => {
+            const doctorId = document.getElementById('doctorSelect').value;
+            const appointmentDate = document.getElementById('appointmentDate').value;
+            const appointmentTime = document.getElementById('appointmentTime').value;
+
+            // Check if all required fields are filled
+            if (!doctorId || !appointmentDate || !appointmentTime) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            fetch('http://localhost:3000/appointments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ patientId, doctorId, appointmentDate, appointmentTime })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Appointment booked successfully!');
+                } else {
+                    alert('Failed to book appointment: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error booking appointment:', error);
+                alert('Failed to book appointment: Server error');
+            });
+        });
+
         // Logout button functionality
         document.getElementById('logout').addEventListener('click', () => {
             localStorage.removeItem('token');
+            localStorage.removeItem('patientId'); // Remove patient ID on logout
             window.location.href = 'login.html';
         });
     </script>

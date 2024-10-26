@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../database'); // Adjust to match your database connection file
+const db = require('../config/db'); // Adjust to match your database connection file
 
 // Route to get the medical history for a logged-in patient
 router.get('/medical-history', (req, res) => {
