@@ -70,14 +70,14 @@
 
     <script>
         const token = localStorage.getItem('token');
-        const patientId = localStorage.getItem('patientId'); // Get patient ID from local storage
+        const patientId = localStorage.getItem('patientId');
 
         if (!token || !patientId) {
             window.location.href = 'login.html';
         }
 
         // Fetch medical history
-        fetch('http://localhost:3000/patients/medical-history', {
+        fetch(`http://localhost:3000/patients/${patientId}/medical-history`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -85,49 +85,42 @@
         .then(response => response.json())
         .then(data => {
             const medicalHistoryDiv = document.getElementById('medicalHistory');
-            if (data.success && data.history.length > 0) {
-                medicalHistoryDiv.innerHTML = data.history.map(record => `
-                    <p><strong>Date:</strong> ${new Date(record.date).toLocaleDateString()}</p>
-                    <p><strong>Doctor:</strong> ${record.doctor_name} (${record.specialty})</p>
-                    <p><strong>Treatment:</strong> ${record.treatment}</p>
-                    <hr>
-                `).join('');
+            if (data.success && data.medicalHistory.length > 0) {
+                medicalHistoryDiv.innerHTML = '<ul>' + data.medicalHistory.map(history =>
+                    `<li>Date: ${history.date}, Doctor: ${history.doctor_name}, Specialty: ${history.specialty}, Treatment: ${history.treatment}</li>`
+                ).join('') + '</ul>';
             } else {
-                medicalHistoryDiv.textContent = 'No medical history available.';
+                medicalHistoryDiv.innerHTML = '<p>No medical history found.</p>';
             }
-        })
-        .catch(error => {
-            console.error('Error fetching medical history:', error);
-            document.getElementById('medicalHistory').textContent = 'Error loading medical history.';
         });
 
-        // Fetch list of doctors
-        fetch('http://localhost:3000/doctors')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.doctors) {
-                    const doctorSelect = document.getElementById('doctorSelect');
-                    data.doctors.forEach(doctor => {
-                        const option = document.createElement('option');
-                        option.value = doctor.id;
-                        option.textContent = `${doctor.first_name} ${doctor.last_name} (${doctor.specialty})`;
-                        doctorSelect.appendChild(option);
-                    });
-                } else {
-                    console.error(data.message || 'Unable to load doctors.');
-                }
-            })
-            .catch(error => console.error('Error fetching doctors:', error));
+        // Fetch doctors
+        fetch('http://localhost:3000/doctors', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const doctorSelect = document.getElementById('doctorSelect');
+                data.doctors.forEach(doctor => {
+                    const option = document.createElement('option');
+                    option.value = doctor.id;
+                    option.textContent = `${doctor.name} (${doctor.specialty})`;
+                    doctorSelect.appendChild(option);
+                });
+            }
+        });
 
-        // Book appointment functionality
+        // Book an appointment
         document.getElementById('bookAppointment').addEventListener('click', () => {
             const doctorId = document.getElementById('doctorSelect').value;
             const appointmentDate = document.getElementById('appointmentDate').value;
             const appointmentTime = document.getElementById('appointmentTime').value;
 
-            // Check if all required fields are filled
             if (!doctorId || !appointmentDate || !appointmentTime) {
-                alert('Please fill in all fields.');
+                alert('Please select all required fields');
                 return;
             }
 
@@ -137,26 +130,21 @@
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ patientId, doctorId, appointmentDate, appointmentTime })
+                body: JSON.stringify({ doctorId, date: appointmentDate, time: appointmentTime, patientId })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Appointment booked successfully!');
+                    alert('Appointment booked successfully');
                 } else {
-                    alert('Failed to book appointment: ' + data.message);
+                    alert(`Error: ${data.message}`);
                 }
-            })
-            .catch(error => {
-                console.error('Error booking appointment:', error);
-                alert('Failed to book appointment: Server error');
             });
         });
 
-        // Logout button functionality
+        // Logout
         document.getElementById('logout').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('patientId'); // Remove patient ID on logout
+            localStorage.clear();
             window.location.href = 'login.html';
         });
     </script>
