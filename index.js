@@ -1,4 +1,4 @@
-// app.js
+// index.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); // For handling JWT authentication
@@ -136,13 +136,11 @@ app.get('/doctors', async (req, res) => {
 });
 
 // Route to book a new appointment
-// Route to book a new appointment
 app.post('/appointments', async (req, res) => {
     console.log('Booking appointment request received:', req.body); // Log the request body
     const { doctorId, date, time, patientId } = req.body;
 
     try {
-        // Validate input
         if (!doctorId || !patientId || !date || !time) {
             return res.status(400).json({ success: false, message: 'All fields are required' });
         }
@@ -151,18 +149,13 @@ app.post('/appointments', async (req, res) => {
             INSERT INTO appointments (doctor_id, patient_id, appointment_date, appointment_time)
             VALUES (?, ?, ?, ?)`;
 
-        // Log the SQL query for debugging
-        console.log('Executing query:', query, [doctorId, patientId, date, time]);
-
         await connection.query(query, [doctorId, patientId, date, time]);
         res.status(201).json({ success: true, message: 'Appointment booked successfully' });
     } catch (error) {
-        console.error('Error booking appointment:', error); // Log the error
-        // Provide more specific error information
-        res.status(500).json({ success: false, message: 'Failed to book appointment: ' + error.sqlMessage || error.message });
+        console.error('Error booking appointment:', error); 
+        res.status(500).json({ success: false, message: 'Failed to book appointment: ' + (error.sqlMessage || error.message) });
     }
 });
-
 
 // Start the server
 app.listen(port, () => {
